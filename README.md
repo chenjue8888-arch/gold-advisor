@@ -108,7 +108,11 @@ gold-advisor/
 │   ├── strategy/
 │   │   └── engine.py               # 策略引擎（信号融合/风控/报告）
 │   ├── graph/
-│   │   └── workflow.py             # LangGraph 工作流编排
+│   │   └── workflow.py             # LangGraph 工作流编排（含自动交易）
+│   ├── trading/
+│   │   ├── executor.py             # MT5 交易执行（开仓/平仓/改单/查持仓）
+│   │   ├── realtime.py             # 实时报价 + 持仓监控 + 信号展示
+│   │   └── logger.py               # 交易日志（JSONL 记录 + 统计查询）
 │   └── utils/
 │       └── llm.py                  # LLM 连接器（DeepSeek 调用封装）
 └── tests/
@@ -145,6 +149,8 @@ ALPHA_VANTAGE_API_KEY=your_alphavantage_key
 - **多数据源降级**：DXY(Alpha Vantage → Frankfurter)、VIX(Yahoo → 新浪)、新闻(NewsAPI → Google News → 新浪)，中英文双源
 - **交互式可视化**：K 线图、RSI/MACD 副图、得分仪表盘、风控表格
 - **报告持久化**：CLI 模式下自动保存 JSON 报告到 `data/` 目录
+- **自动交易执行**：工作流产出 buy/sell 信号后，自动通过 MT5 执行开仓/平仓
+- **交易日志**：所有交易自动记录到 `data/trading_log.jsonl`，支持历史查询和统计
 - **完整错误处理**：每个节点独立 try-except，部分失败不中断整体流程
 
 ## 使用方式
@@ -164,6 +170,19 @@ python main.py
 ```
 
 运行完整 LangGraph 工作流，终端输出最终报告，同时保存 JSON 到 `data/gold_report_XXXXXXXX_XXXXXX.json`。
+
+### 交易执行测试
+
+```powershell
+# 查看账户信息和当前持仓
+python -c "from src.trading.executor import get_account_info, get_positions; print(get_account_info(), get_positions())"
+
+# 模拟手数计算
+python -c "from src.trading.executor import calculate_volume; print(calculate_volume(2, 4030, 4000, 100000))"
+
+# 查看交易历史
+python -c "from src.trading.logger import get_trade_history, get_trade_stats; print(get_trade_history(5), get_trade_stats())"
+```
 
 ## 免责声明
 

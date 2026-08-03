@@ -359,6 +359,9 @@ def print_integration_report(results: dict):
         print("  ✅ 三 Agent 联调全部通过")
     else:
         print("  ⚠️  部分 Agent 验证失败，详情见上方")
+    sig = results.get("technical", {}).get("signal", "hold") or "hold"
+    if sig in ("buy", "sell"):
+        print(f"  💰 产生可执行交易信号 ({sig.upper()})，可调用 executor.open_position() 下单")
     print(f"  🕐 {results.get('timestamp', '')}")
     print(f"  ⏱️  总耗时: {results.get('elapsed', 0):.1f} 秒")
     print("=" * 60)

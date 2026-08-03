@@ -52,8 +52,7 @@ class AdvisorState(TypedDict, total=False):
     combined_signal: dict    # 综合信号
     risk_management: dict    # 风控建议
     final_report: dict       # 最终报告
-
-    # 元信息
+    execution_result: dict   # 交易执行结果
     error: str               # 错误信息
     status: str              # 当前状态
 
@@ -199,10 +198,45 @@ def run_strategy(state: AdvisorState) -> dict:
         report = generate_final_report(tech, sent, fund, combined, risk, price)
 
         print(f"[工作流]   ✅ 策略引擎完成: {combined['final_signal'].upper()}")
+
+        # ── 自动执行交易 ──
+        print("\n" + "─" * 50)
+        print("[工作流] 💰 自动交易执行...")
+        print("─" * 50)
+        execution_result = {}
+        try:
+            from src.trading.executor import open_position, calculate_volume
+            signal = combined.get("final_signal", "hold")
+            price = state.get("current_price", 0.0)
+            sl = risk.get("stop_loss", 0)
+            tp = risk.get("take_profit", 0)
+            entry = risk.get("entry_price", price)
+
+            if signal in ("buy", "sell") and price > 0:
+                vol = calculate_volume(risk_percent=2, entry_price=entry,
+                                       stop_loss=sl, account_balance=None)
+                execution_result = open_position(
+                    symbol="XAUUSD", direction=signal, volume=vol,
+                    stop_loss=sl if sl > 0 else None,
+                    take_profit=tp if tp > 0 else None,
+                    comment=f"AI Advisor {signal.upper()}",
+                )
+                if execution_result.get("success"):
+                    print(f"[工作流]   ✅ 自动交易: #{execution_result['order_ticket']}")
+                else:
+                    print(f"[工作流]   ⚠️ 自动交易失败: {execution_result.get('message')}")
+            else:
+                print(f"[工作流]   信号={signal.upper()}，不执行自动交易")
+        except ImportError:
+            print("[工作流]   交易模块未加载，跳过")
+        except Exception as te:
+            print(f"[工作流]   ⚠️ 自动交易异常: {te}")
+
         return {
             "combined_signal": combined,
             "risk_management": risk,
             "final_report": report,
+            "execution_result": execution_result,
         }
     except Exception as e:
         print(f"[工作流]   ❌ 策略引擎异常: {e}")
@@ -219,6 +253,7 @@ def run_strategy(state: AdvisorState) -> dict:
                 "final_signal": "hold", "current_price": price,
                 "error": str(e),
             },
+            "execution_result": {},
         }
 
 
@@ -228,14 +263,21 @@ def generate_output(state: AdvisorState) -> dict:
     print("  🎯 工作流完成")
     print("=" * 55)
 
+    # 最终报告
     report = state.get("final_report", {})
     if report:
         print_strategy_report(report)
     else:
         print("  ⚠️ 未能生成最终报告")
 
-    return {"status": "completed"}
+    # 交易执行结果
+    exec_result = state.get("execution_result", {})
+    if exec_result and exec_result.get("success"):
+        print(f"  💰 交易已执行: #{exec_result.get('order_ticket')}")
+    elif exec_result and exec_result.get("message"):
+        print(f"  ⚠️ 交易未执行: {exec_result.get('message')}")
 
+    return {"status": "completed"}
 
 # ============================================================
 # 构建工作流图
@@ -310,9 +352,11 @@ def run_advisor() -> dict:
         "combined_signal": {},
         "risk_management": {},
         "final_report": {},
+        "execution_result": {},
         "error": "",
         "status": "pending",
     }
+
 
     try:
         workflow = build_workflow()
