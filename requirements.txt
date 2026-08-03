@@ -1,11 +1,38 @@
-langgraph>=0.2.0
-langchain>=0.3.0
-langchain-openai>=0.2.0
+# ============================================================
+# 黄金投资智能顾问 - Python 依赖
+# 安装: pip install -r requirements.txt
+# ============================================================
+
+# ── AI 编排与 LLM ──
+langgraph>=1.2.0
+langchain>=1.3.0
+langchain-openai>=1.4.0
+langchain-core>=1.5.0
+tiktoken>=0.13.0
+
+# ── 行情数据 ──
 MetaTrader5>=5.0.45
-pandas>=2.0.0
+
+# ── 数据处理 ──
+pandas>=3.0.0
+numpy>=2.2.0
 pandas-ta>=0.4.71b0
-requests>=2.31.0
-beautifulsoup4>=4.12.0
-streamlit>=1.38.0
-python-dotenv>=1.0.0
-plotly>=5.20.0
+
+# ── Web 界面 ──
+streamlit>=1.60.0
+plotly>=6.9.0
+pillow>=12.0.0
+
+# ── API 请求 ──
+requests>=2.34.0
+beautifulsoup4>=4.15.0
+httpx>=0.28.0
+
+# ── 配置与环境 ──
+python-dotenv>=1.2.0
+PyYAML>=6.0.3
+
+# ── 其他依赖（LangChain/Streamlit 自动依赖） ──
+pydantic>=2.13.0
+tenacity>=9.1.0
+orjson>=3.11.0

@@ -23,6 +23,7 @@ def check(name, import_stmt, version_attr=None):
 
 check("python-dotenv", "dotenv")
 check("pandas", "pandas", "__version__")
+check("numpy", "numpy", "__version__")
 check("pandas-ta", "pandas_ta")
 check("MetaTrader5", "MetaTrader5", "__version__")
 check("requests", "requests")
@@ -32,6 +33,7 @@ check("langchain-openai", "langchain_openai")
 check("langgraph", "langgraph")
 check("streamlit", "streamlit", "__version__")
 check("plotly", "plotly", "__version__")
+check("Pillow", "PIL")
 
 print("\n  检查结果:\n")
 success_count = 0
@@ -47,7 +49,7 @@ for name, status, error in results:
 print(f"\n  总计: {success_count}/{len(results)} 通过")
 
 if success_count == len(results):
-    print("\n  🎉 所有依赖安装成功，可以开始开发 MT5 行情数据获取模块！")
+    print("\n  🎉 所有依赖安装成功，可以启动项目！\n    streamlit run app.py\n")
 else:
-    print("\n  ⚠️  部分依赖安装失败，请排查上述错误后重新运行。")
+    print("\n  ⚠️  部分依赖安装失败，请运行: pip install -r requirements.txt\n")
 print()
